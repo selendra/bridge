@@ -2,7 +2,7 @@
 pragma solidity ^0.8.11;
 
 import "forge-std/Script.sol";
-import "../src/erc20Token.sol";
+import "../src/token/erc20Token.sol";
 
 contract DeployErc20Token is Script {
     function run() external {
