@@ -1,0 +1,22 @@
+{
+	"name": "smart-contracts",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"test:generate-signatures": "node migrations/helpers/generateFuncSignatures.js",
+		"test:setup": "node migrations/utils.js"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"devDependencies": {
+		"dotenv": "^16.0.2",
+		"ethers": "^5.5.4",
+		"truffle": "^5.11.5"
+	},
+	"dependencies": {
+		"@openzeppelin/contracts": "4.5.0",
+		"@truffle/hdwallet-provider": "^2.1.15"
+	}
+}
