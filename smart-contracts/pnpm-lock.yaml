@@ -14,6 +14,9 @@ importers:
       '@truffle/hdwallet-provider':
         specifier: ^2.1.15
         version: 2.1.15(@babel/core@7.26.9)(bufferutil@4.0.7)(utf-8-validate@6.0.3)
+      minimist:
+        specifier: ^1.2.8
+        version: 1.2.8
     devDependencies:
       dotenv:
         specifier: ^16.0.2

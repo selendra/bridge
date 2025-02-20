@@ -1,4 +1,5 @@
 const HDWalletProvider = require("@truffle/hdwallet-provider");
+require('dotenv').config();
 
 module.exports = {
   plugins: ["solidity-coverage", "truffle-plugin-verify"],
@@ -7,7 +8,7 @@ module.exports = {
     holesky: {
       provider: () => {
         return new HDWalletProvider({
-          mnemonic: process.env.PRIVATE_KEY,
+          privateKeys: [process.env.PRIVATE_KEY],
           providerOrUrl: process.env.HOLESKY_PROVIDER_URL
         })
       },
@@ -19,13 +20,13 @@ module.exports = {
     sepolia: {
       provider: () => {
         return new HDWalletProvider({
-          mnemonic: process.env.PRIVATE_KEY,
+          privateKeys: [process.env.PRIVATE_KEY],
           providerOrUrl: process.env.SEPOLIA_PROVIDER_URL
         })
       },
       networkCheckTimeout: 10000,
       timeoutBlocks: 200,
-      network_id: "5",
+      network_id: "11155111",
       gasPrice: 30000000000,  // 30 gwei
     },
   },

@@ -41,22 +41,6 @@ function generateAccessControlFuncSignatures() {
   return accessControlFuncSignatures;
 }
 
-// Add a main function to execute the script
-async function main() {
-  console.log('Generating access control function signatures...');
-  generateAccessControlFuncSignatures();
-}
-
-// Execute the script
-if (require.main === module) {
-  main()
-      .then(() => process.exit(0))
-      .catch((error) => {
-          console.error('Error:', error);
-          process.exit(1);
-      });
-}
-
 module.exports = {
   generateAccessControlFuncSignatures
 };
