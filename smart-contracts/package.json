@@ -13,7 +13,8 @@
 	"devDependencies": {
 		"dotenv": "^16.0.2",
 		"ethers": "^5.5.4",
-		"truffle": "^5.11.5"
+		"truffle": "^5.11.5",
+		"truffle-assertions": "^0.9.2"
 	},
 	"dependencies": {
 		"@openzeppelin/contracts": "4.5.0",
