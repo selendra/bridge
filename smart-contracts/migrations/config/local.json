@@ -3,8 +3,6 @@
    "MPCAddress":"0x16b30190055E1bdd45268c9982e6D00Fd23AB355",
    "erc20":[
        {
-          "address": "0x42763B76d21A1786d0f8bcE3DD9eBBae7b165cF0",
-          "resourceID": "0x000000000000000000000042763b76d21a1786d0f8bce3dd9ebbae7b165cf001",
           "name":"TESTTOKEN_1",
           "symbol":"TTK1",
           "feeType":"basic",

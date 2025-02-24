@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 
 const fs = require("fs");
-const {utils} = require("ethers");
-const {resolve} = require("path");
+const { utils } = require("ethers");
+const { resolve } = require("path");
 const { ethers } = require("ethers");
 
-const BRIDGE_CONTRACT_PATH = resolve(__dirname, "../../contracts/Bridge.sol");
-const ARTIFACTS_PATH = resolve(__dirname, "../../build/contracts/Bridge.json");
+const BRIDGE_CONTRACT_PATH = resolve(__dirname, "../contracts/Bridge.sol");
+const ARTIFACTS_PATH = resolve(__dirname, "../build/contracts/Bridge.json");
 
 function generateAccessControlFuncSignatures() {
   const bridgeAbiJson = JSON.parse(fs.readFileSync(ARTIFACTS_PATH));
@@ -32,9 +32,9 @@ function generateAccessControlFuncSignatures() {
       el2 => el1.includes(el2))).map(
         func => ({
           function: func,
-          hash: utils.keccak256(Buffer.from(func)).substring(0,10)
-    })
-  );
+          hash: utils.keccak256(Buffer.from(func)).substring(0, 10)
+        })
+      );
 
   console.table(accessControlFuncSignatures);
 
@@ -42,21 +42,18 @@ function generateAccessControlFuncSignatures() {
 }
 
 const createResourceID = (contractAddress, domainID) => {
-    // Ensure contractAddress is properly formatted (remove '0x' if present)
-    const cleanAddress = contractAddress.toLowerCase().replace('0x', '');
-    
-    // Convert domainID to hex and pad to 2 bytes
-    const domainHex = ethers.utils.hexZeroPad(ethers.BigNumber.from(domainID).toHexString(), 1).slice(2);
-    
-    // Combine address and domain, then pad to 32 bytes
-    const combined = cleanAddress + domainHex;
-    const resourceID = ethers.utils.hexZeroPad('0x' + combined, 32);
-    
-    return resourceID;
+  // Ensure contractAddress is properly formatted (remove '0x' if present)
+  const cleanAddress = contractAddress.toLowerCase().replace('0x', '');
+  const domainHex = ethers.utils.hexZeroPad(ethers.BigNumber.from(domainID).toHexString(), 1).slice(2);
+  const combined = cleanAddress + domainHex;
+  const resourceID = ethers.utils.hexZeroPad('0x' + combined, 32);
+  return resourceID;
 };
 
+const accessControlFuncSignatures = generateAccessControlFuncSignatures().map(e => e.hash);
 
 module.exports = {
   generateAccessControlFuncSignatures,
-  createResourceID
+  createResourceID,
+  accessControlFuncSignatures
 };
