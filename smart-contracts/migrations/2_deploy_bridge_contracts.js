@@ -79,4 +79,31 @@ module.exports = async function (deployer, network) {
       "BasicFeeHandler Address": basicFeeHandlerInstance.address,
       "PercentageFeeHandler Address": percentageFeeHandlerInstance.address
     });
+  
+  // setup erc20 tokens
+  for (const erc20 of networksConfig.erc20) {
+    await Utils.setupErc20(
+      deployer,
+      erc20,
+      bridgeInstance,
+      erc20HandlerInstance,
+      networksConfig.domainID,
+    );
+
+    console.log(
+      "-------------------------------------------------------------------------------"
+    );
+    console.log("ERC20 address:", "\t", erc20.address);
+    console.log("ResourceID:", "\t", erc20.resourceID);
+    console.log("Decimal places:", "\t", erc20.decimals);
+    console.log(
+      "-------------------------------------------------------------------------------"
+    );
+  }
+
+    // set MPC address
+  if (networksConfig.MPCAddress)
+    await bridgeInstance.endKeygen(networksConfig.MPCAddress);
+
+  console.log("🎉🎉🎉 Sygma bridge successfully configured 🎉🎉🎉", "\n");
 }

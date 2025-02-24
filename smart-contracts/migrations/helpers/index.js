@@ -4,7 +4,7 @@
 const fs = require("fs");
 const {utils} = require("ethers");
 const {resolve} = require("path");
-
+const { ethers } = require("ethers");
 
 const BRIDGE_CONTRACT_PATH = resolve(__dirname, "../../contracts/Bridge.sol");
 const ARTIFACTS_PATH = resolve(__dirname, "../../build/contracts/Bridge.json");
@@ -41,6 +41,22 @@ function generateAccessControlFuncSignatures() {
   return accessControlFuncSignatures;
 }
 
+const createResourceID = (contractAddress, domainID) => {
+    // Ensure contractAddress is properly formatted (remove '0x' if present)
+    const cleanAddress = contractAddress.toLowerCase().replace('0x', '');
+    
+    // Convert domainID to hex and pad to 2 bytes
+    const domainHex = ethers.utils.hexZeroPad(ethers.BigNumber.from(domainID).toHexString(), 1).slice(2);
+    
+    // Combine address and domain, then pad to 32 bytes
+    const combined = cleanAddress + domainHex;
+    const resourceID = ethers.utils.hexZeroPad('0x' + combined, 32);
+    
+    return resourceID;
+};
+
+
 module.exports = {
-  generateAccessControlFuncSignatures
+  generateAccessControlFuncSignatures,
+  createResourceID
 };
