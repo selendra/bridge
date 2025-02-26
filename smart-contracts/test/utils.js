@@ -1,5 +1,6 @@
 const Helper = require("../helpers");
 const Ethers = require("ethers");
+const ethSigUtil = require("eth-sig-util");
 
 const AccessControlSegregatorContract = artifacts.require(
   "AccessControlSegregator"
@@ -101,14 +102,63 @@ const createERCDepositData = (
   ); // recipientAddress               (?? bytes)
 };
 
+const signTypedProposal = (bridgeAddress, proposals, chainId = 1) => {
+  const name = "Bridge";
+  const version = "3.1.0";
+
+  const EIP712Domain = [
+    {name: "name", type: "string"},
+    {name: "version", type: "string"},
+    {name: "chainId", type: "uint256"},
+    {name: "verifyingContract", type: "address"},
+  ];
+
+  const types = {
+    EIP712Domain: EIP712Domain,
+    Proposal: [
+      {name: "originDomainID", type: "uint8"},
+      {name: "depositNonce", type: "uint64"},
+      {name: "resourceID", type: "bytes32"},
+      {name: "data", type: "bytes"},
+    ],
+    Proposals: [{name: "proposals", type: "Proposal[]"}],
+  };
+
+  return ethSigUtil.signTypedMessage(Ethers.utils.arrayify(mpcPrivateKey), {
+    data: {
+      types: types,
+      domain: {
+        name,
+        version,
+        chainId,
+        verifyingContract: bridgeAddress,
+      },
+      primaryType: "Proposals",
+      message: {
+        proposals: proposals,
+      },
+    },
+  });
+};
+
+const passes = async function(promise) {
+  try {
+    await promise;
+  } catch (error) {
+    assert.fail("Revert reason: " + error.data.result);
+  }
+}
+
 module.exports = {
   expectToRevertWithCustomError,
   deployBridge,
   constructGenericHandlerSetResourceData,
+  signTypedProposal,
   createResourceID,
   createERCWithdrawData,
   createERCDepositData,
   reverts,
+  passes,
   mpcPrivateKey,
   mpcAddress,
   blankFunctionDepositorOffset,
