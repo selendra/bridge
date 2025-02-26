@@ -88,12 +88,26 @@ const createERCWithdrawData = (
   );
 };
 
+const createERCDepositData = (
+  tokenAmountOrID,
+  lenRecipientAddress,
+  recipientAddress
+) => {
+  return (
+    "0x" +
+    toHex(tokenAmountOrID, 32).substr(2) + // Token amount or ID to deposit (32 bytes)
+    toHex(lenRecipientAddress, 32).substr(2) + // len(recipientAddress)          (32 bytes)
+    recipientAddress.substr(2)
+  ); // recipientAddress               (?? bytes)
+};
+
 module.exports = {
   expectToRevertWithCustomError,
   deployBridge,
   constructGenericHandlerSetResourceData,
   createResourceID,
   createERCWithdrawData,
+  createERCDepositData,
   reverts,
   mpcPrivateKey,
   mpcAddress,
