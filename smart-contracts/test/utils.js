@@ -82,9 +82,9 @@ const createERCWithdrawData = (
 ) => {
   return (
     "0x" +
-    toHex(tokenAddress, 32).substr(2) +
-    toHex(recipientAddress, 32).substr(2) +
-    toHex(tokenAmountOrID, 32).substr(2)
+    toHex(tokenAddress, 32).substring(2) +
+    toHex(recipientAddress, 32).substring(2) +
+    toHex(tokenAmountOrID, 32).substring(2)
   );
 };
 
@@ -95,9 +95,9 @@ const createERCDepositData = (
 ) => {
   return (
     "0x" +
-    toHex(tokenAmountOrID, 32).substr(2) + // Token amount or ID to deposit (32 bytes)
-    toHex(lenRecipientAddress, 32).substr(2) + // len(recipientAddress)          (32 bytes)
-    recipientAddress.substr(2)
+    toHex(tokenAmountOrID, 32).substring(2) + // Token amount or ID to deposit (32 bytes)
+    toHex(lenRecipientAddress, 32).substring(2) + // len(recipientAddress)          (32 bytes)
+    recipientAddress.substring(2)
   ); // recipientAddress               (?? bytes)
 };
 
