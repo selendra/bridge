@@ -1,5 +1,5 @@
-pub mod handler;
-pub mod controller;
+mod handler;
+mod controller;
 
 pub use handler::{Handler, FeeHandler};
 pub use controller::AccessControl;

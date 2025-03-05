@@ -7,7 +7,7 @@ use tokio::sync::broadcast;
 use crate::error::BridgeError;
 use crate::traits::{Handler, FeeHandler, AccessControl};
 use crate::types::{Proposal, DepositRecord, ExecutionRecord, DepositStatus, ChainConfig};
-use crate::utils::{Pausable, crypto::BridgeCrypto};
+use crate::utils::{Pausable, BridgeCrypto};
 
 /// Core bridge implementation that handles cross-chain communication
 pub struct Bridge {
