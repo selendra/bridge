@@ -15,8 +15,8 @@
                 "feeType": "basic",
                 "strategy": "lr",
                 "decimals": "18",
-                "address:": "0x9bA8479Ace7Ab906e937E2c8fBC3120db5063bA5",
-                "resourceID": "0x00000000000000000000009ba8479ace7ab906e937e2c8fbc3120db5063ba501"
+                "address:": "0x257E64fBaC41A29622E64E0D549dBe3dCdbfD914",
+                "resourceID": "0x0000000000000000000000257e64fbac41a29622e64e0d549dbe3dcdbfd91401"
             }
         ]
     },
