@@ -1,3 +1,4 @@
+import assert from "assert";
 import { ethers, utils } from "ethers";
 import { resolve } from "path";
 const fs = require("fs");
@@ -141,6 +142,26 @@ const erc20Approve = async (
   console.log("Approval Successful:", approveTx.hash);
 }
 
+const bridge_deposit = async (
+  wallet: ethers.Wallet,
+  bridgeInstance: ethers.Contract,
+  destinationDomainID: number,
+  resourceID: string,
+  depositData: string,
+  feeData: string,
+) => {
+  const depositTx = await bridgeInstance
+    .connect(wallet)
+    .deposit(
+      destinationDomainID,
+      resourceID,
+      depositData,
+      feeData
+    )
+  await depositTx.wait();
+  console.log("Deposit Successful:", depositTx.hash);
+}
+
 async function main() {
   const provider = new ethers.providers.JsonRpcProvider(process.env.LOCAL_PROVIDER_URL);
   const wallet = new ethers.Wallet(process.env.PRIVATE_KEY ? process.env.PRIVATE_KEY : "", provider);
@@ -148,7 +169,9 @@ async function main() {
   const mpcAddress = wallet.address
 
   const originDomainID = 1;
+  const destinationDomainID = 2;
   const emptySetResourceData = "0x";
+  const feeData = "0x";
   const adminAddress = wallet.address;
   const depositorAddress = "0xB8413a476ca0dCD538b81d3BF41919C634C3675a";
   const recipientAddress = "0x1Ad4b1efE3Bc6FEE085e995FCF48219430e615C3";
@@ -165,6 +188,9 @@ async function main() {
     "ERC20Handler Address": erc20HandlerInstance.address,
     "ERC20 Address": erc20Instance.address
   });
+
+  // set MPC address to unpause the Bridge
+  await bridgeInstance.endKeygen(mpcAddress);
 
   const resourceID = createResourceID(
     erc20Instance.address,
@@ -185,11 +211,20 @@ async function main() {
   console.log("starting approve");
   await erc20Approve(depositWallet, erc20Instance, erc20HandlerInstance.address, depositAmount);
 
-  const data = createERCDepositData(depositAmount, 20, recipientAddress);
+  const depositData = createERCDepositData(depositAmount, 20, recipientAddress);
 
-  // set MPC address to unpause the Bridge
-  await bridgeInstance.endKeygen(mpcAddress);
+  const depositorBalance = await erc20Instance.balanceOf(depositorAddress);
+  console.log(`current depositorBalance ${depositorBalance}`);
 
+  const handlerAllowance = await erc20Instance.allowance(depositorAddress, erc20HandlerInstance.address);
+  console.log(`current handlerAllowance ${handlerAllowance}`);
+
+  let isPaused = await bridgeInstance.paused();
+  console.log(`isPaused ${isPaused}`);
+
+  console.log("starting bridge deposit");
+  await bridge_deposit(depositWallet, bridgeInstance, destinationDomainID, resourceID, depositData, feeData);
+  
 }
 
 main()
