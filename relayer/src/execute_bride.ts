@@ -1,31 +1,26 @@
-import assert from "assert";
 import { ethers, utils } from "ethers";
-import { resolve } from "path";
-const fs = require("fs");
+const ethSigUtil = require("eth-sig-util");
+import { 
+  AccessControlSegregatorContractJson,
+  bridge_address,
+  bridgeContract, BridgeContractJson,
+  bridgeContractMethods,
+  DefaultMessageReceiverContractJson,
+  depositWallet,
+  dest_bridge_address,
+  dest_erc20_addres,
+  dest_erc20Handler_address,
+  destwallet,
+  erc20_addres,
+  Erc20ContractJson, erc20Handler_address, Erc20HandlerContractJson, 
+  mpcAddress, 
+  mpcPrivateKey,
+  wallet
+} from "./constantd";
 require("dotenv").config();
-
-const BRIDGE_CONTRACT_PATH = resolve(__dirname, "../../smart-contracts/contracts/Bridge.sol");
-const BRIDGE_CONTRACT_ARTIFACTS_PATH = resolve(__dirname, "../../smart-contracts/build/contracts/Bridge.json");
-const BridgeContractJson = JSON.parse(fs.readFileSync(BRIDGE_CONTRACT_ARTIFACTS_PATH, "utf8"));
-
-const ACCESS_CONTROL_SEGRESGATOR_ARTIFACTS_PATH = resolve(__dirname, "../../smart-contracts/build/contracts/AccessControlSegregator.json");
-const AccessControlSegregatorContractJson = JSON.parse(fs.readFileSync(ACCESS_CONTROL_SEGRESGATOR_ARTIFACTS_PATH, "utf8"));
-
-const ERC20_ARTIFACTS_PATH = resolve(__dirname, "../../smart-contracts/build/contracts/ERC20PresetMinterPauser.json");
-const Erc20ContractJson = JSON.parse(fs.readFileSync(ERC20_ARTIFACTS_PATH, "utf8"));
-
-const ERC20_HANDLER_ARTIFACTS_PATH = resolve(__dirname, "../../smart-contracts/build/contracts/ERC20Handler.json");
-const Erc20HandlerContractJson = JSON.parse(fs.readFileSync(ERC20_HANDLER_ARTIFACTS_PATH, "utf8"));
-
-const DEFAULT_MESSAGE_RECEIVER_ARTIFACTS_PATH = resolve(__dirname, "../../smart-contracts/build/contracts/DefaultMessageReceiver.json");
-const DefaultMessageReceiverContractJson = JSON.parse(fs.readFileSync(DEFAULT_MESSAGE_RECEIVER_ARTIFACTS_PATH, "utf8"));
 
 
 function generateAccessControlFuncSignatures() {
-  const bridgeAbiJson = JSON.parse(fs.readFileSync(BRIDGE_CONTRACT_ARTIFACTS_PATH));
-  const bridgeContractMethods = bridgeAbiJson.userdoc.methods
-  const bridgeContract = fs.readFileSync(BRIDGE_CONTRACT_PATH);
-
   // regex that will match all functions that have "onlyAllowed" modifier
   const regex = RegExp("function\\s+(?:(?!_onlyAllowed|function).)+onlyAllowed", "gs");
 
@@ -128,20 +123,6 @@ const deployErc20Handler = async (wallet: ethers.Wallet, bridgeAdress: string) =
   return erc20HandlerContract.deploy(bridgeAdress, defaultMessageReceiverInstance.address);
 }
 
-const erc20Approve = async (
-  wallet: ethers.Wallet,
-  erc20Instance: ethers.Contract,
-  erc20HandlerAdress: string,
-  depositAmount: number,
-) => {
-  const approveTx = await erc20Instance
-    .connect(wallet)
-    .approve(erc20HandlerAdress, depositAmount * 2);
-
-  await approveTx.wait();
-  console.log("Approval Successful:", approveTx.hash);
-}
-
 const bridge_deposit = async (
   wallet: ethers.Wallet,
   bridgeInstance: ethers.Contract,
@@ -162,28 +143,17 @@ const bridge_deposit = async (
   console.log("Deposit Successful:", depositTx.hash);
 }
 
-async function main() {
-  const provider = new ethers.providers.JsonRpcProvider(process.env.LOCAL_PROVIDER_URL);
-  const wallet = new ethers.Wallet(process.env.PRIVATE_KEY ? process.env.PRIVATE_KEY : "", provider);
-  const depositWallet = new ethers.Wallet(process.env.DEPOSIT_PRIVATE_KEY ? process.env.DEPOSIT_PRIVATE_KEY : "", provider);
-  const mpcAddress = wallet.address
-
-  const originDomainID = 1;
-  const destinationDomainID = 2;
-  const emptySetResourceData = "0x";
-  const feeData = "0x";
-  const adminAddress = wallet.address;
-  const depositorAddress = "0xB8413a476ca0dCD538b81d3BF41919C634C3675a";
-  const recipientAddress = "0x1Ad4b1efE3Bc6FEE085e995FCF48219430e615C3";
-  const initialTokenAmount = 100;
-  const depositAmount = 10;
-
-  const bridgeInstance = await deployBridge(wallet, 1, adminAddress);
+const deploy_bridge = async(
+  wallet: ethers.Wallet,
+  adminAddress: string,
+  mpcAddress: string,
+  domainId: number
+) => {
+  const bridgeInstance = await deployBridge(wallet, domainId, adminAddress);
   const erc20HandlerInstance = await deployErc20Handler(wallet, bridgeInstance.address);
   const erc20Instance = await deployErc20(wallet);
 
   console.table({
-    "Deployer Address": adminAddress,
     "Bridge Address": bridgeInstance.address,
     "ERC20Handler Address": erc20HandlerInstance.address,
     "ERC20 Address": erc20Instance.address
@@ -191,10 +161,46 @@ async function main() {
 
   // set MPC address to unpause the Bridge
   await bridgeInstance.endKeygen(mpcAddress);
+}
 
+const bridge_call = async (bridgeAddress: string, wallet: ethers.Wallet) => {
+  return new ethers.Contract(bridgeAddress, BridgeContractJson.abi, wallet);
+}
+
+const erc20_call = async (erc20Address: string, wallet: ethers.Wallet) => {
+  return new ethers.Contract(erc20Address, Erc20ContractJson.abi, wallet);
+}
+
+const erc20Handler_call = async (erc20HandlerAddress: string, wallet: ethers.Wallet) => {
+  return new ethers.Contract(erc20HandlerAddress, Erc20HandlerContractJson.abi, wallet);
+}
+
+const erc20Approve = async (
+  wallet: ethers.Wallet,
+  erc20Instance: ethers.Contract,
+  erc20HandlerAdress: string,
+  depositAmount: number,
+) => {
+  const approveTx = await erc20Instance
+    .connect(wallet)
+    .approve(erc20HandlerAdress, depositAmount);
+
+  await approveTx.wait();
+  console.log("Approval Successful:", approveTx.hash);
+}
+
+const setup_bridge = async (
+  bridgeInstance: ethers.Contract,
+  erc20Instance: ethers.Contract,
+  erc20HandlerInstance: ethers.Contract,
+  domainID: number,
+  depositorAddress: string,
+  initialTokenAmount: number,
+  emptySetResourceData: string
+) => {
   const resourceID = createResourceID(
     erc20Instance.address,
-    originDomainID
+    domainID
   );
 
   console.log("starting set_resource");
@@ -207,24 +213,172 @@ async function main() {
 
   console.log("starting mint");
   await erc20Instance.mint(depositorAddress, initialTokenAmount);
+}
 
-  console.log("starting approve");
-  await erc20Approve(depositWallet, erc20Instance, erc20HandlerInstance.address, depositAmount);
 
-  const depositData = createERCDepositData(depositAmount, 20, recipientAddress);
+const signTypedProposal = (
+  bridgeAddress: string,
+  proposals: any,
+  chainId: number = 1,
+) => {
+  const name = "Bridge";
+  const version = "3.1.0";
 
-  const depositorBalance = await erc20Instance.balanceOf(depositorAddress);
-  console.log(`current depositorBalance ${depositorBalance}`);
+  const EIP712Domain = [
+    {name: "name", type: "string"},
+    {name: "version", type: "string"},
+    {name: "chainId", type: "uint256"},
+    {name: "verifyingContract", type: "address"},
+  ];
 
-  const handlerAllowance = await erc20Instance.allowance(depositorAddress, erc20HandlerInstance.address);
-  console.log(`current handlerAllowance ${handlerAllowance}`);
+  const types = {
+    EIP712Domain: EIP712Domain,
+    Proposal: [
+      {name: "originDomainID", type: "uint8"},
+      {name: "depositNonce", type: "uint64"},
+      {name: "resourceID", type: "bytes32"},
+      {name: "data", type: "bytes"},
+    ],
+    Proposals: [{name: "proposals", type: "Proposal[]"}],
+  };
 
-  let isPaused = await bridgeInstance.paused();
-  console.log(`isPaused ${isPaused}`);
+  return ethSigUtil.signTypedMessage(ethers.utils.arrayify(mpcPrivateKey), {
+    data: {
+      types: types,
+      domain: {
+        name,
+        version,
+        chainId,
+        verifyingContract: bridgeAddress,
+      },
+      primaryType: "Proposals",
+      message: {
+        proposals: proposals,
+      },
+    },
+  });
+};
 
-  console.log("starting bridge deposit");
-  await bridge_deposit(depositWallet, bridgeInstance, destinationDomainID, resourceID, depositData, feeData);
+const createProposal = async (
+  destBridgeInstance: ethers.Contract,
+  originDomainID: number,
+  depositNonce: number,
+  resourceID: string,
+  depositProposalData: string,
+  chainId: number
+) => {
+  const proposal = {
+    originDomainID: originDomainID,
+    depositNonce: depositNonce,
+    resourceID: resourceID,
+    data: depositProposalData,
+  };
+
+  const proposalSignedData = signTypedProposal(
+    destBridgeInstance.address,
+    [proposal],
+    chainId
+  );
+
+  const executeTx = await destBridgeInstance
+    .executeProposal(proposal, proposalSignedData);
+
+  await executeTx.wait();
+  console.log("Proposal Executed:", executeTx.hash);
+    
+}
+
+
+async function main() {
+  const originDomainID = 1;
+  const destinationDomainID = 2;
+  const emptySetResourceData = "0x";
+  const feeData = "0x";
+  const adminAddress = wallet.address;
+  const depositorAddress = "0xB8413a476ca0dCD538b81d3BF41919C634C3675a";
+  const recipientAddress = "0x1Ad4b1efE3Bc6FEE085e995FCF48219430e615C3";
+  const initialTokenAmount = 1000000;
+  const depositAmount = 10;
+
+  const bridgeInstance = await bridge_call(bridge_address, wallet);
+  const erc20Instance = await erc20_call(erc20_addres, wallet);
+  const erc20HandlerInstance = await erc20Handler_call(erc20Handler_address, wallet);
+
+  const destBridgeInstance = await bridge_call(dest_bridge_address, destwallet);
+  const destErc20Instance = await erc20_call(dest_erc20_addres, destwallet);
+  const destEc20HandlerInstance = await erc20Handler_call(dest_erc20Handler_address, destwallet);
+
+  const resourceID = createResourceID(
+    erc20Instance.address,
+    originDomainID
+  );
+
+  const destResourceID = createResourceID(
+    destErc20Instance.address,
+    destinationDomainID
+  );
+
+  // console.log("origin bridge starting deploying");
+  // await deploy_bridge(wallet, adminAddress, mpcAddress, originDomainID);
+  // console.log("destination bridge starting deploying");
+  // await deploy_bridge(destwallet, adminAddress, mpcAddress, destinationDomainID);
+
+  // await setup_bridge(
+  //   bridgeInstance,
+  //   erc20Instance,
+  //   erc20HandlerInstance,
+  //   originDomainID,
+  //   depositorAddress,
+  //   initialTokenAmount,
+  //   emptySetResourceData
+  // );
+
+  // await setup_bridge(
+  //   destBridgeInstance,
+  //   destErc20Instance,
+  //   destEc20HandlerInstance,
+  //   destinationDomainID,
+  //   depositorAddress,
+  //   initialTokenAmount,
+  //   emptySetResourceData
+  // );
+
+  // let isPaused = await bridgeInstance.paused();
+  // console.log(`isPaused ${isPaused}`);
+
+  // console.log("starting approve");
+  // await erc20Approve(depositWallet, erc20Instance, erc20HandlerInstance.address, depositAmount);
+
+  // // create deposit data
+  // const depositData = createERCDepositData(depositAmount, 5, recipientAddress);
+
+  // // check depositorBalance of original chain
+  // let depositorBalance = await erc20Instance.balanceOf(depositorAddress);
+  // console.log(`current depositorBalance ${depositorBalance}`);
+
   
+  // // console.log("starting bridge deposit");
+  // // await bridge_deposit(depositWallet, bridgeInstance, destinationDomainID, resourceID, depositData, feeData);
+
+  // /// check latest deposit nonce
+  // const depositNonce = await bridgeInstance._depositCounts(
+  //   destinationDomainID
+  // );
+  // console.log(`Bridge deposit nonce ${depositNonce}`);
+
+  // check depositorBalance of destination chain
+  let dest_depositorBalance = await destErc20Instance.balanceOf(recipientAddress);
+  console.log(`current dest depositorBalance ${dest_depositorBalance}`);
+  
+  // await createProposal(destBridgeInstance, originDomainID, Number(depositNonce), destResourceID, depositData, 11155111);
+
+   // check depositorBalance of destination chain after bridge
+  dest_depositorBalance = await destErc20Instance.balanceOf(recipientAddress);
+  console.log(`after bridge depositorBalance ${dest_depositorBalance}`);
+
+  // const handler = await destBridgeInstance._resourceIDToHandlerAddress(destResourceID);
+  // console.log(`Handler for Resource ID: ${handler}`);
+  // console.log(`Handler for Resource ID: ${destResourceID}`);
 }
 
 main()

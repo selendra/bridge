@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "dotenv": "^16.4.7",
-    "ethers": "^5.7.2"
+    "ethers": "^5.7.2",
+    "eth-sig-util": "^3.0.1"
   }
 }
