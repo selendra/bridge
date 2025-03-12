@@ -7,12 +7,12 @@ async function transferERC20Token() {
   try {
     const bridgeConfig = {
         sourceChain: {
-          rpcUrl: "https://eth-sepolia.g.alchemy.com/v2/vPdmyYeNx2JnfH6gA7aRsXofm4PIkeYR",
+          rpcUrl: "https://eth-sepolia.g.alchemy.com/v2/",
           bridgeAddress: "0xA6935d6214f8bdb347191B34287751E15Bc77A0c", // Source chain bridge address
           domainId: 1 // Source chain domain ID
         },
         destinationChain: {
-          rpcUrl: "https://eth-holesky.g.alchemy.com/v2/vPdmyYeNx2JnfH6gA7aRsXofm4PIkeYR",
+          rpcUrl: "https://eth-holesky.g.alchemy.com/v2/",
           bridgeAddress: "h0x9BB0807Ac05a1D511E54a4942279207cEd932997", // Destination chain bridge address
           domainId: 2 // Destination chain domain ID
         }
