@@ -189,6 +189,39 @@ const erc20Approve = async (
   console.log("Approval Successful:", approveTx.hash);
 }
 
+const erc20GranRole = async (
+  wallet: ethers.Wallet,
+  erc20Instance: ethers.Contract,
+  erc20HandlerAdress: string,
+) => {
+  const grantRoleTx = await erc20Instance
+    .connect(wallet)
+    .grantRole(
+      await erc20Instance.MINTER_ROLE(),
+      erc20HandlerAdress
+    );
+
+  await grantRoleTx.wait();
+  console.log("GrandMintRole Successful:", grantRoleTx.hash);
+}
+
+const bridgeSetUpBurnAble = async (
+  wallet: ethers.Wallet,
+  bridgeInstance: ethers.Contract,
+  erc20HandlerAdress: string,
+  erc20Address: string
+) => {
+  const setUpBurnAbleTx = await bridgeInstance
+    .connect(wallet)
+    .adminSetBurnable(
+      erc20HandlerAdress,
+      erc20Address
+    );
+
+    await setUpBurnAbleTx.wait();
+    console.log("GrandMintRole Successful:", setUpBurnAbleTx.hash);
+}
+
 const setup_bridge = async (
   bridgeInstance: ethers.Contract,
   erc20Instance: ethers.Contract,
@@ -343,8 +376,15 @@ async function main() {
   //   emptySetResourceData
   // );
 
+  //  await erc20GranRole(wallet, erc20Instance, erc20Handler_address);
+  //  await erc20GranRole(destwallet, destErc20Instance, dest_erc20Handler_address);
+  // await bridgeSetUpBurnAble(destwallet, destBridgeInstance, dest_erc20Handler_address, dest_erc20_addres);
+
   // let isPaused = await bridgeInstance.paused();
   // console.log(`isPaused ${isPaused}`);
+
+  // let isDestPaused = await destBridgeInstance.paused();
+  // console.log(`isDestPaused ${isDestPaused}`);
 
   // console.log("starting approve");
   // await erc20Approve(depositWallet, erc20Instance, erc20HandlerInstance.address, depositAmount);
@@ -356,9 +396,8 @@ async function main() {
   // let depositorBalance = await erc20Instance.balanceOf(depositorAddress);
   // console.log(`current depositorBalance ${depositorBalance}`);
 
-  
-  // // console.log("starting bridge deposit");
-  // // await bridge_deposit(depositWallet, bridgeInstance, destinationDomainID, resourceID, depositData, feeData);
+  // console.log("starting bridge deposit");
+  // await bridge_deposit(depositWallet, bridgeInstance, destinationDomainID, resourceID, depositData, feeData);
 
   // /// check latest deposit nonce
   // const depositNonce = await bridgeInstance._depositCounts(
@@ -366,19 +405,15 @@ async function main() {
   // );
   // console.log(`Bridge deposit nonce ${depositNonce}`);
 
-  // check depositorBalance of destination chain
+  // // check depositorBalance of destination chain
   let dest_depositorBalance = await destErc20Instance.balanceOf(recipientAddress);
-  console.log(`current dest depositorBalance ${dest_depositorBalance}`);
+  // console.log(`current dest depositorBalance ${dest_depositorBalance}`);
   
   // await createProposal(destBridgeInstance, originDomainID, Number(depositNonce), destResourceID, depositData, 11155111);
 
    // check depositorBalance of destination chain after bridge
   dest_depositorBalance = await destErc20Instance.balanceOf(recipientAddress);
   console.log(`after bridge depositorBalance ${dest_depositorBalance}`);
-
-  // const handler = await destBridgeInstance._resourceIDToHandlerAddress(destResourceID);
-  // console.log(`Handler for Resource ID: ${handler}`);
-  // console.log(`Handler for Resource ID: ${destResourceID}`);
 }
 
 main()

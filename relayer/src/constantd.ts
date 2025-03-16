@@ -22,9 +22,9 @@ export const Erc20HandlerContractJson = JSON.parse(fs.readFileSync(ERC20_HANDLER
 export const DEFAULT_MESSAGE_RECEIVER_ARTIFACTS_PATH = resolve(__dirname, "../../smart-contracts/build/contracts/DefaultMessageReceiver.json");
 export const DefaultMessageReceiverContractJson = JSON.parse(fs.readFileSync(DEFAULT_MESSAGE_RECEIVER_ARTIFACTS_PATH, "utf8"));
 
-export const bridge_address = "0x5D5b7cb61125573B5027C781b06AEda6d2aC22AC";
-export const erc20Handler_address = "0x67ba9268e1ebf588aa5F06d331E8Aa39496b2dbD";
-export const erc20_addres = "0x5267DCb8ee5796f1F66c4eB26ca79B2fe7068e71";
+export const bridge_address = "0xa42CeaC4d528F2F505E6C407b30fFb61BcC1164e";
+export const erc20Handler_address = "0xaF2d02caE6AeD20eDd2cDC3824D99bcf9D5F80af";
+export const erc20_addres = "0xc9974b3BE58Dde1ebC1767B30DDF02F01A924de7";
 
 export const dest_bridge_address = "0xf383f70D6f233f16966AeF8b33299083fdf5B5E1";
 export const dest_erc20Handler_address = "0x6ff8b7EbCE2360De3C81d9cB14693aa3be39a66c";
