@@ -1,8 +1,13 @@
 import { ethers } from "ethers";
 import dotenv from 'dotenv';
-import { AccessControlSegregatorContractJson, BridgeContractJson, DefaultMessageReceiverContractJson, Erc20ContractJson, Erc20HandlerContractJson } from "./constantd";
-import { accessControlFuncSignatures, signTypedProposal, toHex } from "./utils";
-import { BridgeProposal, IContractInstances } from "./interface";
+import { AccessControlSegregatorContractJson,
+    BridgeContractJson,
+    DefaultMessageReceiverContractJson,
+    Erc20ContractJson,
+    Erc20HandlerContractJson
+} from "../configs";
+import { accessControlFuncSignatures, signTypedProposal } from "../utils";
+import { BridgeProposal, IContractInstances } from "../type";
 
 dotenv.config();
 
@@ -13,6 +18,10 @@ export class Bridge {
     private readonly domainId: number;
 
     constructor(domainId: number) {
+        if (domainId < 0 || domainId > 255) {
+            throw new Error(`Invalid domainID: ${domainId}. Must be between 0 and 255.`);
+        }
+
         const providerUrl = process.env.PROVIDER_URL;
         if (!providerUrl) {
             throw new Error("Provider URL is not defined in environment variables");
@@ -271,12 +280,11 @@ export class Bridge {
     }
 
     async messageReceiveGrantRole(): Promise<void> {
-        if (!this.contractInstances.defaultMessageReceiver) {
-            throw new Error("MessageReceiver contract not deployed.");
-        }
-
-        if (!this.contractInstances.erc20Handler) {
-            throw new Error("Erc20Handler contract not deployed.");
+        if (
+            !this.contractInstances.erc20Handler ||
+            !this.contractInstances.defaultMessageReceiver
+        ) {
+            throw new Error("Required contracts not deployed. Ensure all contracts are deployed before setting resources.");
         }
         this.contractInstances.defaultMessageReceiver.grantRole(
             await this.contractInstances.defaultMessageReceiver.SYGMA_HANDLER_ROLE(),
@@ -407,19 +415,6 @@ export class Bridge {
         }
     }
 
-    createERCDepositData(
-        tokenAmountOrID: string | any,
-        lenRecipientAddress: number | any,
-        recipientAddress: string
-    ): string {
-        return (
-            "0x" +
-            toHex(tokenAmountOrID, 32).substring(2) + // Token amount or ID to deposit (32 bytes)
-            toHex(lenRecipientAddress, 32).substring(2) + // len(recipientAddress)          (32 bytes)
-            recipientAddress.substring(2)
-        );
-    };
-
     createResourceId(contractAddress: string): string {
         if (!ethers.utils.isAddress(contractAddress)) {
             throw new Error(`Invalid contract address: ${contractAddress}`);
@@ -439,8 +434,3 @@ export class Bridge {
     }
 }
 
-
-
-// const bridge = new Bridge(1);
-// const resourceId = bridge.createERCDepositData(100, 20, "");
-// console.log(resourceId)

@@ -2,7 +2,7 @@ import { resolve } from "path";
 const fs = require("fs");
 require("dotenv").config();
 
-export const BRIDGE_CONTRACT_PATH = resolve(__dirname, "../../smart-contracts/contracts/Bridge.sol");
+export const BRIDGE_CONTRACT_PATH = resolve(__dirname, "../../../smart-contracts/contracts/Bridge.sol");
 export const BRIDGE_CONTRACT_ARTIFACTS_PATH = resolve(__dirname, "./smart-contracts/Bridge.json");
 export const BridgeContractJson = JSON.parse(fs.readFileSync(BRIDGE_CONTRACT_ARTIFACTS_PATH, "utf8"));
 export const bridgeContractMethods = BridgeContractJson.userdoc.methods;

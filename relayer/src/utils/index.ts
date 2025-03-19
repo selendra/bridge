@@ -1,6 +1,6 @@
 import { ethers, utils } from "ethers";
-import { bridgeContract, bridgeContractMethods } from "../constantd";
-import { BridgeProposal } from "../interface";
+import { bridgeContract, bridgeContractMethods } from "../configs/constants";
+import { BridgeProposal } from "../type";
 const ethSigUtil = require("eth-sig-util");
 
 const generateAccessControlFuncSignatures = () =>{
@@ -70,6 +70,20 @@ export const signTypedProposal = (
       },
     },
   });
+};
+
+
+export const createERCDepositData = (
+  tokenAmountOrID: string | any,
+  lenRecipientAddress: number | any,
+  recipientAddress: string
+) => {
+  return (
+      "0x" +
+      toHex(tokenAmountOrID, 32).substring(2) + // Token amount or ID to deposit (32 bytes)
+      toHex(lenRecipientAddress, 32).substring(2) + // len(recipientAddress)          (32 bytes)
+      recipientAddress.substring(2)
+  );
 };
 
 export const toHex = (covertThis: any, padding: any) => {
